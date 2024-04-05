@@ -17,9 +17,9 @@ module CoreTypes =
             |> Option.defaultWith (fun () -> failwith $"Invalid Language value: {x}")
 
     type Currency =
-        | Rub
+        | RUB
         | USD
-        | Chy
+        | CNY
 
     type 'A Localized = Map<Language, 'A>
 
@@ -192,7 +192,7 @@ module CoreTypes =
             Warranty : string option
         }
 
-    type OriginalPrice =
+    type OriginalPrice = // PriceLogEntry
         {
             PriceId: string
             PriceListId: int
@@ -280,14 +280,6 @@ module CoreTypes =
             LowestHistoricPrice: OriginalPrice
             PriceId: string
             PriceListId: int
-        }
-
-    type CampaignPriceValue =
-        {
-            CampaignPrice: decimal
-            ListPrice: decimal
-            Discount: float
-            LowestHistoricPrice: OriginalPrice
         }
 
     type LimitedCampaignPriceValue =

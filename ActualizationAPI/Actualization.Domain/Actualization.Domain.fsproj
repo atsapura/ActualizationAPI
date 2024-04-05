@@ -8,8 +8,10 @@
 
   <ItemGroup>
     <Compile Include="Helpers.fs" />
+    <Compile Include="Time.fs" />
     <Compile Include="CoreTypes.fs" />
     <Compile Include="LocalizedModels.fs" />
+    <Compile Include="SellingPriceHistory.fs" />
   </ItemGroup>
 
   <ItemGroup>
