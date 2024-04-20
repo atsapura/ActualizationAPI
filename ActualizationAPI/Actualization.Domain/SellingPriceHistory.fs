@@ -3,6 +3,7 @@
 open NodaTime
 open CoreTypes
 
+[<RequireQualifiedAccess>]
 module SellingPriceHistory =
 
     let CutoffPeriod = Period.FromDays 30
@@ -19,7 +20,7 @@ module SellingPriceHistory =
             |> Array.maxBy fst
             |> Some
 
-    let add store date price (log: PriceLog) =
+    let add date price (log: PriceLog) =
         match latestEntry log with
         | Some (_, p) when p = price -> log
         | _ -> log.Add(date, price)
@@ -44,8 +45,8 @@ module SellingPriceHistory =
         priceLog
         |> Map.filter (fun d _ -> d >= cutoffDay)
 
-    let removeOutdatedForStore now (priceLog: PriceLog) store : PriceLog =
-        let today = localDate store now
+    let removeOutdated now storeTimezone (priceLog: PriceLog) : PriceLog =
+        let today = localDate storeTimezone now
         removeOutdatedFromLog today priceLog
 
     let private findLowestOriginalPriceByPriceListId today priceListId (log: PriceLog) =
@@ -63,4 +64,3 @@ module SellingPriceHistory =
     let findLowestOriginalPrice today priceListId (log: PriceLog) =
         findLowestOriginalPriceWithDate today priceListId log
         |> Option.map snd
-

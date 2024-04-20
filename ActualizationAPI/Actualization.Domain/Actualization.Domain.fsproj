@@ -12,6 +12,8 @@
     <Compile Include="CoreTypes.fs" />
     <Compile Include="LocalizedModels.fs" />
     <Compile Include="SellingPriceHistory.fs" />
+    <Compile Include="Price.fs" />
+    <Compile Include="PriceLog.fs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -16,11 +16,6 @@ module CoreTypes =
             Language.ofString x
             |> Option.defaultWith (fun () -> failwith $"Invalid Language value: {x}")
 
-    type Currency =
-        | RUB
-        | USD
-        | CNY
-
     type 'A Localized = Map<Language, 'A>
 
     type StringSpecValue =
@@ -213,7 +208,6 @@ module CoreTypes =
             PriceListId: int
             Value: decimal
             VatRate : decimal
-            Currency: Currency
             Start: Instant option
             End: Instant option
         }
@@ -353,7 +347,6 @@ module CoreTypes =
         {
             PublicPrice: PublicPrice
             RecommendedPrice: decimal option
-            Currency: Currency
             VatRate: decimal
             MemberPrices: Map<MemberPriceTier, MemberSellingPrice>
         }
