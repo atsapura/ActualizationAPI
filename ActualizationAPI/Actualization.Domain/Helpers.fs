@@ -3,6 +3,8 @@
 [<AutoOpen>]
 module Helpers =
 
+    type 'A Merge = 'A -> 'A -> 'A
+
     open System
     // This wraps ugly results of <type>.TryParse methods to an option
     let inline tryParse<'a when 'a: (static member TryParse: string * byref<'a> -> bool)> x =
@@ -109,3 +111,13 @@ module String =
         | null | "" -> ""
         | s -> s.ToUpper()
 
+[<RequireQualifiedAccess>]
+module Result =
+
+    let chooseError = function
+        | Error e -> Some e
+        | Ok _ -> None
+
+    let chooseOk = function
+        | Ok o -> Some o
+        | Error _ -> None

@@ -2,6 +2,8 @@
 
 open NodaTime
 open CoreTypes
+open FsToolkit.ErrorHandling
+open System
 
 module LocalizedModels =
 
@@ -74,7 +76,7 @@ module LocalizedModels =
 
             TechSpecs : LocalizedTechSpec[]
 
-            BlogPageSlugs: string[]
+            //BlogPageSlugs: string[]
 
             EnergyClass: EnergyClass option
             SortOrder : int option
@@ -158,7 +160,6 @@ module LocalizedModels =
             ProductItem: ProductItem
             Price: ProductItemPrice
             Inventory: FullInventory
-            WasLocalizedFor : Set<Language>
             StockBalance : ProductItemStockBalance option
         }
 
@@ -191,20 +192,9 @@ module LocalizedModels =
     type ProductItemLocalizationError =
         | MissingField of ProductItemRequiredField
 
-    type InventoryLocalizationError =
-        | UnavailableForStore
-        | LocalizationRulesViolated of AdditionalLocalizationRules
-        | ErpStatusFalse
-
-    type StockBalanceLocalizationError =
-        | MissingB2BShipmentMapping
-        | MissingB2CShipmentMapping
-
     [<RequireQualifiedAccess>]
     type FullItemError =
         | LocalizationErrors of ProductItemLocalizationError list
-        | AvailabilityErrors of InventoryLocalizationError list
-        | StockBalanceLocalizationError of StockBalanceLocalizationError list
         | NoActivePrice
 
     type LocalizedCompleteProduct =
@@ -272,3 +262,120 @@ module LocalizedModels =
 
     let localizeAllSpecs specs storeCode =
         specs |> Array.choose (fun s -> localizeSpec s storeCode)
+
+    let localizeProductItem : ProductItem -> Language -> Validation<LocalizedProductItem, ProductItemLocalizationError> =
+        fun item language ->
+            let localize map = Map.tryFind language map
+            let notEmpty = Option.filter (not << String.IsNullOrWhiteSpace)
+            validation {
+                let! proterm = localize item.ProTerm |> notEmpty |> Result.requireSome (MissingField Proterm)
+                and! fullReview = localize item.FullReview |> Result.requireSome (MissingField FullReview)
+                and! shortDescription = localize item.ShortDescription |> notEmpty |> Result.requireSome (MissingField ShortDescription)
+                and! seo = localize item.Seo |> Result.requireSome (MissingField Seo)
+                and! mpn = Some item.Mpn |> notEmpty |> Result.requireSome (MissingField Mpn)
+
+                let variant = localize item.Variant
+                let feature = localize item.Feature
+                let userRating = localize item.UserRating |> Option.defaultValue UserRating.defaultValue
+                let keywords = localize item.Keywords |> Option.defaultValue [||]
+                let techSpecs = localizeAllSpecs item.TechSpecs language
+                return
+                    {
+                        Sku = item.Sku
+                        ProductId = item.ProductId
+                        ProTerm = proterm
+                        Mpn = mpn
+                        PrimaryCategoryId = item.PrimaryCategoryId
+                        CategoryIds = item.CategoryIds
+                        SellingStartDate = item.SellingStartDate
+                        Brand = item.Brand
+                        Assets = item.Assets
+                        TechSpecs = techSpecs
+                        Feature = feature
+                        Variant = variant
+                        CampaignIds = item.CampaignIds
+                        ShortDescription = shortDescription
+                        FullReview = fullReview
+                        PrimaryImageId = item.PrimaryImageId
+                        SecondaryImageIds = item.SecondaryImageIds
+                        Dimensions = item.Dimensions
+                        Seo = seo
+                        Keywords = keywords
+                        UserRating = userRating
+                        SortOrder = item.SortOrder
+                        Warranty = item.Warranty
+                        EnergyClass = item.EnergyClass
+                    }
+            }
+
+    let private warehouseStock warehouseId (stockBalance : WarehouseStockBalance) =
+        let bufferedWh = WarehouseId.warehousesWithLeadtime.Contains warehouseId
+        let totalQuantity =
+            if bufferedWh then
+                stockBalance.QuantityToBeAvailable + stockBalance.QuantityAvailableNow
+            else stockBalance.QuantityAvailableNow
+        if totalQuantity <= 0. then
+            None
+        elif bufferedWh then
+            {
+                BufferedWarehouseStock.QuantityAvailableNow = stockBalance.QuantityAvailableNow
+                QuantityToBeAvailable = stockBalance.QuantityToBeAvailable
+            } |> WarehouseStock.Buffered |> AvailableStock.InStock |> Some
+        else
+            {
+                ExternalWarehouseStock.Quantity = stockBalance.QuantityAvailableNow
+                WarehouseId = warehouseId
+            } |> WarehouseStock.External |> AvailableStock.InStock |> Some
+
+    let itemStock (stockBalance : ProductItemStockBalance option) =
+        let stockBalances =
+            stockBalance
+            |> Option.map (fun s -> s.StockBalance)
+            |> Option.defaultValue Map.empty
+
+        let warehouseIds = stockBalances.Keys |> WarehouseId.sanitize
+        let outOfStockWarehouseId =
+            warehouseIds |> WarehouseId.pickWarehouseForOutOfStock
+
+        let outOfStockWarehouse =
+            {
+                Warehouse.Id = outOfStockWarehouseId
+                IsDropshipment = WarehouseId.isDropshipmentWarehouse outOfStockWarehouseId
+            }
+        match warehouseIds with
+        | [||] -> ItemStock.OutOfStock { LeadTime = 0; ShippingFromWarehouse = outOfStockWarehouse }
+        | _ ->
+            let available =
+                [|
+                    for warehouseId in warehouseIds do
+                        if WarehouseId.isDropshipmentWarehouse warehouseId then
+                            let quantity =
+                                stockBalances
+                                |> Map.tryFind warehouseId
+                                |> Option.map (fun s -> s.QuantityAvailableNow)
+                            match quantity with
+                            | None -> ()
+                            | Some quantity ->
+                                if quantity > 0. then
+                                    {
+                                        DropshipmentStock.WarehouseId = warehouseId
+                                        Quantity = quantity
+                                    } |> AvailableStock.Dropshipment
+                                else
+                                    ()
+                        else
+                            let stock =
+                                optional {
+                                    let! stockBalance = stockBalances.TryFind warehouseId
+                                    let! result = warehouseStock warehouseId stockBalance
+                                    return result
+                                }
+                            match stock with
+                            | None -> ()
+                            | Some stock -> stock
+
+                |]
+
+            match available with
+            | [||] -> ItemStock.OutOfStock { LeadTime = 0; ShippingFromWarehouse = outOfStockWarehouse }
+            | available -> ItemStock.Available available

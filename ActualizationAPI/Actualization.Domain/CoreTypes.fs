@@ -15,6 +15,22 @@ module CoreTypes =
         static member op_Explicit (x:string) =
             Language.ofString x
             |> Option.defaultWith (fun () -> failwith $"Invalid Language value: {x}")
+        static member values =
+            [| Russian; English |]
+
+    type PerLanguage<'T> =
+        {
+            Russian : 'T
+            English: 'T
+        }
+
+    type PerTimezone<'T> =
+        {
+            Moscow: 'T
+            Omsk: 'T
+            Yekaterinburg: 'T
+            Irkutsk: 'T
+        }
 
     type 'A Localized = Map<Language, 'A>
 

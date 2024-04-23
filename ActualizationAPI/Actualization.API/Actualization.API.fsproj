@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <UserSecretsId>1de4258f-19d1-49ad-aa44-c3ae04b4881e</UserSecretsId>
+      <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="StatefulCatalog.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Dockerfile" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Akka" Version="1.5.19" />
+    <PackageReference Include="Akkling" Version="0.14.0" />
+    <PackageReference Include="Giraffe" Version="6.4.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Actualization.Domain\Actualization.Domain.fsproj" />
+  </ItemGroup>
+
+</Project>
