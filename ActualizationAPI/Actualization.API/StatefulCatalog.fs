@@ -104,15 +104,11 @@ module StatefulCatalog =
                 }
 
         let private evalFreightClass (item: ProductItem) (inventory: FullInventory) =
-            // I've decided not to touch this for cases (if there are any)
-            // when Dimensions.FreightClass is "0". That will allow to convert string zeroes "0"
-            // to None as well (for blobs, and CartAPI (Actualize + elastic)).
-            let evalProductItemFreightClass _ =
+            let evalProductItemFreightClass () =
                 item.Dimensions.FreightClass
                 |> tryParse<int>
                 |> Option.defaultValue 0
 
-            // inventory.FreightClass can be Some 0
             inventory.FreightClass |> Option.defaultWith evalProductItemFreightClass
 
         let private mergeFreightClass incompleteProductItem =
@@ -143,7 +139,7 @@ module StatefulCatalog =
                 |> mergeFreightClass
 
         let withInventory (inventory: FullInventory) incompleteProductItem =
-            if incompleteProductItem.ItemId <> inventory.ProductItemId then
+            if incompleteProductItem.ItemId <> inventory.Sku then
                 incompleteProductItem
             else
                 { incompleteProductItem with Inventory = Some inventory }
@@ -209,8 +205,8 @@ module StatefulCatalog =
 
         let withInventory product (inventory : FullInventory) =
             let incompleteItem =
-                product.IncompleteItems.TryFind inventory.ProductItemId
-                |> Option.defaultValue (IncompleteProductItem.empty inventory.ProductItemId)
+                product.IncompleteItems.TryFind inventory.Sku
+                |> Option.defaultValue (IncompleteProductItem.empty inventory.Sku)
                 |> IncompleteProductItem.withInventory inventory
             withIncompleteItem product incompleteItem
 

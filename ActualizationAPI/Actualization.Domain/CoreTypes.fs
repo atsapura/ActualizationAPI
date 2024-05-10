@@ -32,6 +32,8 @@ module CoreTypes =
             Irkutsk: 'T
         }
 
+    type PerStore<'T> = PerTimezone<PerLanguage<'T>>
+
     type 'A Localized = Map<Language, 'A>
 
     type StringSpecValue =
@@ -436,9 +438,8 @@ module CoreTypes =
 
     type FullInventory =
         {
-            ProductItemId : string
-            InStockMessage : int // Values are numbers mapped to translated values on Storefront
-            OutOfStockMessage : int
+            Sku : string
+            OutOfStockLeadTime : int
             BackorderAvailability : BackorderAvailability option
 
             // UnavailabilityReason

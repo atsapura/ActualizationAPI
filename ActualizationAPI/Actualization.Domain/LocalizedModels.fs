@@ -43,15 +43,15 @@ module LocalizedModels =
         {
             Sku : string
             ProductId: string
-            SellingStartDate : Instant option
+            SellingStart : Instant option
 
-            PrimaryCategoryId : string // CategoryId from the blue STEP structure. Not sure if we need it.
+            PrimaryCategoryId : string
             CategoryIds : CategoryTree[]
 
             Brand : BrandShortInfo
 
             Warranty : string option
-            CampaignIds : string[] // Former Marketing tags
+            CampaignIds : string[]
 
             Mpn : string
             ProTerm : string
@@ -65,18 +65,16 @@ module LocalizedModels =
             SecondaryImageIds : string[]
             Assets : Asset[]
 
-            Dimensions: Dimensions // Must have at least default value
+            Dimensions: Dimensions
 
             Seo : SeoUrlData
 
-            Keywords :  string[] // Optional for each store
+            Keywords :  string[]
 
             UserRating : UserRating
 
 
             TechSpecs : LocalizedTechSpec[]
-
-            //BlogPageSlugs: string[]
 
             EnergyClass: EnergyClass option
             SortOrder : int option
@@ -287,7 +285,7 @@ module LocalizedModels =
                         Mpn = mpn
                         PrimaryCategoryId = item.PrimaryCategoryId
                         CategoryIds = item.CategoryIds
-                        SellingStartDate = item.SellingStartDate
+                        SellingStart = item.SellingStartDate
                         Brand = item.Brand
                         Assets = item.Assets
                         TechSpecs = techSpecs

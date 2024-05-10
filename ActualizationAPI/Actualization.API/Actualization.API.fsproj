@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="StatefulCatalog.fs" />
+    <Compile Include="PublicContract.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
