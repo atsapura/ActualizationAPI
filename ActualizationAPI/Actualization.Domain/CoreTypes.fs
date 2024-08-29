@@ -205,7 +205,7 @@ module CoreTypes =
             Warranty : string option
         }
 
-    type OriginalPrice = // PriceLogEntry
+    type PriceLogEntry =
         {
             PriceId: string
             PriceListId: int
@@ -263,9 +263,9 @@ module CoreTypes =
             RecommendedPrice: decimal option
         }
 
-    type PriceLog = Map<LocalDate, OriginalPrice>
+    type PriceLog = Map<LocalDate, PriceLogEntry>
 
-    type ProductItemPrice = // ProductItemPricePool
+    type ProductItemPricePool =
         {
             ItemId: string
             ListPrices: ListPrice[]
@@ -289,7 +289,7 @@ module CoreTypes =
             Amount: decimal
             ListPrice: decimal
             Discount: float
-            LowestHistoricPrice: OriginalPrice
+            LowestHistoricPrice: PriceLogEntry
             PriceId: string
             PriceListId: int
         }
@@ -426,13 +426,13 @@ module CoreTypes =
 
     type ProductItemStockBalance =
         {
-            ProductItemId : string
+            Sku : string
             StockBalance : Map<WarehouseId, WarehouseStockBalance>
         }
         with
-        static member createDefault productItemId =
+        static member createDefault sku =
             {
-                ProductItemStockBalance.ProductItemId = productItemId
+                ProductItemStockBalance.Sku = sku
                 StockBalance = Map.empty
             }
 

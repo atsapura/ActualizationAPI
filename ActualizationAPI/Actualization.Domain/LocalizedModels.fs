@@ -156,7 +156,7 @@ module LocalizedModels =
     type CompleteProductItem =
         {
             ProductItem: ProductItem
-            Price: ProductItemPrice
+            Price: ProductItemPricePool
             Inventory: FullInventory
             StockBalance : ProductItemStockBalance option
         }

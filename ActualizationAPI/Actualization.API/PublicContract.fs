@@ -3,7 +3,6 @@
 open NodaTime
 open Actualization.Domain.CoreTypes
 open Actualization.Domain.LocalizedModels
-open Actualization.Domain
 
 module PublicContract =
 

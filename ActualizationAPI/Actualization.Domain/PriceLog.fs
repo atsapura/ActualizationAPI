@@ -5,7 +5,7 @@ open CoreTypes
 [<RequireQualifiedAccess>]
 module PriceLog =
 
-    let private toOriginalPrice : CurrentPrice -> OriginalPrice =
+    let private toOriginalPrice : CurrentPrice -> PriceLogEntry =
         fun price ->
             {
                 PriceId = PublicPrice.priceId price.PublicPrice
@@ -23,7 +23,7 @@ module PriceLog =
         Price.current now store price
         |> Option.map (fun p -> store, p)
 
-    let append now (price: ProductItemPrice) =
+    let append now (price: ProductItemPricePool) =
         let historicPrice = currentPrice now price StoreTimeZone.Moscow
         match historicPrice with
         | None -> price

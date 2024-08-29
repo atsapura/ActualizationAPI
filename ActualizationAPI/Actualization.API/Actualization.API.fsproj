@@ -10,6 +10,8 @@
   <ItemGroup>
     <Compile Include="StatefulCatalog.fs" />
     <Compile Include="PublicContract.fs" />
+    <Compile Include="Cache.fs" />
+    <Compile Include="BootStorage.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
@@ -25,7 +27,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Actualization.DataAccess\Actualization.DataAccess.fsproj" />
     <ProjectReference Include="..\Actualization.Domain\Actualization.Domain.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Actors\" />
   </ItemGroup>
 
 </Project>

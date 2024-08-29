@@ -35,7 +35,7 @@ module StatefulCatalog =
         {
             ItemId: ItemId
             ProductItem: ProductItem option
-            Price: ProductItemPrice option
+            Price: ProductItemPricePool option
             Inventory: FullInventory option
             StockBalance : ProductItemStockBalance option
             BackorderAvailability : ProductItemBackorderAvailability option
@@ -95,7 +95,7 @@ module StatefulCatalog =
                             }
                 |]
 
-        let private mergePrices : ProductItemPrice Merge =
+        let private mergePrices : ProductItemPricePool Merge =
             fun oldPrice newPrice ->
                 {
                     newPrice with
@@ -146,7 +146,7 @@ module StatefulCatalog =
                 |> mergeFreightClass
 
         let withStockBalance (stockBalance : ProductItemStockBalance) incompleteProductItem =
-            if incompleteProductItem.ItemId <> stockBalance.ProductItemId then
+            if incompleteProductItem.ItemId <> stockBalance.Sku then
                 incompleteProductItem
             else
             { incompleteProductItem with StockBalance = Some stockBalance }
@@ -157,7 +157,7 @@ module StatefulCatalog =
             else
             { incompleteProductItem with BackorderAvailability = Some backorderAvailability }
 
-        let withPrice (price: ProductItemPrice) incompleteProductItem =
+        let withPrice (price: ProductItemPricePool) incompleteProductItem =
             if incompleteProductItem.ItemId <> price.ItemId then
                 incompleteProductItem
             else
@@ -196,7 +196,7 @@ module StatefulCatalog =
                 |> IncompleteProductItem.withProductItem item
             withIncompleteItem product incompleteItem
 
-        let withPrice product (price: ProductItemPrice) =
+        let withPrice product (price: ProductItemPricePool) =
             let incompleteItem =
                 product.IncompleteItems.TryFind price.ItemId
                 |> Option.defaultValue (IncompleteProductItem.empty price.ItemId)
@@ -212,8 +212,8 @@ module StatefulCatalog =
 
         let withStockBalance product (stockBalance : ProductItemStockBalance) =
             let incompleteItem =
-                product.IncompleteItems.TryFind stockBalance.ProductItemId
-                |> Option.defaultValue (IncompleteProductItem.empty stockBalance.ProductItemId)
+                product.IncompleteItems.TryFind stockBalance.Sku
+                |> Option.defaultValue (IncompleteProductItem.empty stockBalance.Sku)
                 |> IncompleteProductItem.withStockBalance stockBalance
             withIncompleteItem product incompleteItem
 
@@ -491,6 +491,12 @@ module StatefulCatalog =
             Price: CurrentPrice
             Inventory: FullInventory
             StockBalance : ItemStock
+        }
+
+    type ItemInfo =
+        {
+            Sku: string
+            Info: PerTimezone<PerLanguage<Result<ActualizedItem, ProductExportError[]>>>
         }
 
     let actualizedInfo: LocalizedCompleteItem -> ActualizedItem =
